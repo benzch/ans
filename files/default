@@ -1,0 +1,20 @@
+upstream testapp {
+        server 10.0.0.11;
+        server 10.0.0.12;
+}
+
+server {
+        listen 80 default_server;
+        listen [::]:80 ipv6only=on default_server;
+
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        server_name localhost;
+
+        location / {
+                proxy_pass http://testapp;
+        }
+
+}

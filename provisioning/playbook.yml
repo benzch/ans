@@ -1,0 +1,62 @@
+---
+- hosts: web1
+  become: true 
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+    - name: add server name to nginx html
+      lineinfile:
+       dest: /usr/share/nginx/html/index.html
+       insertafter: "^<p><em>Thank you for using nginx."
+       line: <p>hello from web server-1</p>
+
+- hosts: web2
+  become: true 
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+    - name: add server name to nginx html
+      lineinfile:
+       dest: /usr/share/nginx/html/index.html
+       insertafter: "^<p><em>Thank you for using nginx."
+       line: <p>hello from web server-2</p>
+
+- hosts: lb1
+  become: true 
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+    - name:  nginx stop
+      service:
+          name: nginx
+          state: stopped
+    - name: add server name to nginx html
+      lineinfile:
+       dest: /usr/share/nginx/html/index.html
+       insertafter: "^<p><em>Thank you for using nginx."
+       line: <p>hello from load balancer 1</p>
+    - name: delete the defaulut configuration nginx file
+      shell: /bin/rm -rf /etc/nginx/sites-enabled/default
+    - name: copy new nginx configuration file 
+      copy:
+        src: /ans/files/default
+        dest: /etc/nginx/sites-enabled/
+        owner: vagrant
+        group: vagrant
+        mode: 0644    
+    - name:  nginx start
+      service:
+          name: nginx
+          state: started
+
+
+
+
