@@ -7,46 +7,31 @@
 # you're doing.
 Vagrant.configure("2") do |config|
 
-# config.vm.define "lb1" do |lb1|
-# lb1.vm.box = "ubuntu/trusty64" 
-# lb1.vm.network "private_network",ip: "10.0.0.10" 
-#lb1.ssh.username = "root"
-#lb1.ssh.password = "root"
-#end 
-
-config.vm.define "web1" do |web1| 
-web1.vm.box = "ubuntu/trusty64" 
-web1.vm.network "private_network",ip: "10.0.0.11" 
+N = 5
+(1..N).each do |machine_id|
+    config.vm.define "web#{machine_id}" do |machine|
+       machine.vm.box = "ubuntu/trusty64" 
+       machine.vm.hostname = "web#{machine_id}"
+       machine.vm.network "private_network", ip: "10.0.0.#{10+machine_id}"
+    end
+    if machine_id == N
+        config.vm.provision "ansible_local" do |ansible|
+           ansible.playbook = "playbook.yml"
+           ansible.become = true
+          # ansible.extra_vars = { machine: "web#{machine_id}" }
+        end
+    end
 end
 
-
-config.vm.define "web2" do |web2| 
-web2.vm.box = "ubuntu/trusty64" 
-web2.vm.network "private_network",ip: "10.0.0.12" 
-end
 
 config.vm.define "lb1" do |lb1| 
-lb1.vm.box = "ubuntu/trusty64" 
-lb1.vm.network "private_network",ip: "10.0.0.10" 
+       lb1.vm.box = "ubuntu/trusty64" 
+       lb1.vm.network "private_network",ip: "10.0.0.10" 
+       config.vm.provision "ansible_local" do |ansible|
+       ansible.playbook = "playbooklb.yml"
+       ansible.become = true
+       end
 end
-
-
-config.vm.provision "ansible" do |ansible|
-ansible.playbook = "/ans/provisioning/playbook.yml"
-ansible.groups = {
-      "group1" => ["web1"],
-      "group2" => ["web2"],
-      "group3" => ["lb1"],
-}
-end
- 
-#config.vm.define "web2" do |web2|
-# web2.vm.box = "ubuntu/trusty64" 
-#web2.vm.network "private_network",ip: "10.0.0.12" 
-#end 
-
-
-
 
 
   # The most common configuration options are documented and commented below.
@@ -108,4 +93,6 @@ end
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
+
 end
+

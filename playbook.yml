@@ -1,5 +1,5 @@
 ---
-- hosts: web1
+- hosts: all
   become: true 
   tasks:
     - name: ensure nginx is at the latest version
@@ -12,57 +12,7 @@
       lineinfile:
        dest: /usr/share/nginx/html/index.html
        insertafter: "^<p><em>Thank you for using nginx."
-       line: <p>hello from web server-1</p>
-
-- hosts: web2
-  become: true 
-  tasks:
-    - name: ensure nginx is at the latest version
-      apt: name=nginx state=latest
-    - name: start nginx
-      service:
-          name: nginx
-          state: started
-    - name: add server name to nginx html
-      lineinfile:
-       dest: /usr/share/nginx/html/index.html
-       insertafter: "^<p><em>Thank you for using nginx."
-       line: <p>hello from web server-2</p>
-
-- hosts: lb1
-  become: true 
-  tasks:
-    - name: ensure nginx is at the latest version
-      apt: name=nginx state=latest
-    - name:  nginx stop
-      service:
-          name: nginx
-          state: stopped
-    - name: add server name to nginx html
-      lineinfile:
-       dest: /usr/share/nginx/html/index.html
-       insertafter: "^<p><em>Thank you for using nginx."
-       line: <p>hello from load balancer 1</p>
-    - name: delete the defaulut configuration nginx file
-      shell: /bin/rm -rf /etc/nginx/sites-enabled/default
-    - copy:
-        content: |
-          upstream testapp {
-          server 10.0.0.11;
-          server 10.0.0.12;}
-          server {
-           listen 80 default_server;
-            listen [::]:80 ipv6only=on default_server;
-          root /usr/share/nginx/html;
-          index index.html index.htm;
-          server_name localhost;
-          location / {
-                proxy_pass http://testapp;}}
-        dest: /etc/nginx/sites-enabled/default
-    - name:  nginx start
-      service:
-          name: nginx
-          state: started
+       line: <p>hello from web server-{{ ansible_eth1.ipv4.address }}</p>
 
 
 
